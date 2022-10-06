@@ -1,11 +1,11 @@
 #TODO
 
-- implement dead squares
-- implement death
-- implement win condition
-- score and reward should be different?
-- implement both of them
-- tie UI with Game
-- tie UI to HTML buttons
-...
-- train model
+STEP
+	- no score, just reward
+	- no win condition for now; play until death //consider if adding
+
+UI
+	- tie UI with Game
+	- tie UI to HTML buttons
+
+TRAIN
