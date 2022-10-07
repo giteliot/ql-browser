@@ -1,38 +1,46 @@
-const GRID_RATIO = 32
-const MAX_X = 14
-const MAX_Y = 9
+import {Game} from './game.js'
 
 const canvas = document.getElementById('main-canvas')
-const startBtn = document.getElementById('startstop')
-const resetBtn = document.getElementById('reset')
+const startSoloBtn = document.getElementById('solo')
+const startBotBtn = document.getElementById('bot')
 const scoreTexr = document.getElementById('score')
 
+let playEnabled = false;
 
-class Eater {
-	constructor() {
-		this.x = 0
-		this.y = 9
-		this.score = 0
-	}
+function initGame(isSolo) {
+	const game = new Game();
+	game.reset();
+	playEnabled = isSolo;
+	
+	renderGame(game, canvas);
 
-	move() {
-		const moveX = Math.floor(Math.random() * 3)-1
-		const moveY = Math.floor(Math.random() * 3)-1
-
-		this.x = Math.max(0, Math.min(MAX_X, this.x + moveX))
-		this.y = Math.max(0, Math.min(MAX_Y, this.y + moveY))
-
-		// console.log(`new x = ${this.x}`)
-		// console.log(`new y = ${this.y}`)
-	}
+	startSoloBtn.innerText = "RESET"
+	startSoloBtn.addEventListener('click', async () => {
+		initSoloGame(true);
+	})
 }
 
-class Food {
-	constructor() {
-		this.x = Math.floor(Math.random() * (MAX_X+1))
-		this.y = Math.floor(Math.random() * (MAX_Y+1))
+function renderGame(game, canvas) {
+	const ctx = canvas.getContext("2d");
+
+	for (let [value, index] of game.getState().entries()) { 
+	  let tile = game.popUp(index);
+	  let color = game.getColorOfValue(value);
+
+	  ctx.fillStyle = color;
+	  ctx.fillRect(tile[0], tile[1], game.gridRatio, game.gridRatio);
 	}
+	
 }
+
+startSoloBtn.addEventListener('click', async () => {
+	initGame(true);
+})
+
+/*function manualMove() {
+
+}
+
 
 function renderEater(eater, canvas) {
 	const ctx = canvas.getContext("2d")
@@ -107,5 +115,5 @@ reset.addEventListener('click', async () => {
 	startBtn.innerText = "START"
 	score.innerText = `LIFE BEGINS`
 
-  })
+  })*/
 

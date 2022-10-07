@@ -4,7 +4,8 @@
   "description": "q-learning in the browser with tensorflow.js",
   "main": "index.js",
   "scripts": {
-    "test": "babel-node ./game/tests/game_test.js"
+    "test": "babel-node ./game/tests/game_test.js",
+    "start": "babel-node ./server.js"
   },
   "author": "rexismad",
   "license": "ISC",

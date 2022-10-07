@@ -18,12 +18,36 @@ export class Game {
 		this.height = 10;
 		this.visibility = 1;
 		this.startingFood = 5;
+		this.eaterColor = "#000000";
+		this.foodColor = "#008000";
+		this.poopColor = "#ff0000";
+		this.backgroundColor = "#ffffff";
 
 		this.reset();
 	}
 
 	flatten(coordinates) {
 		return coordinates[1]*this.width+coordinates[0];
+	}
+
+	popUp(index) {
+		return [index%this.width, index/this.width];
+	}
+
+	getColorOfValue(cellValue) {
+		switch (cellValue) {
+			case -1: return this.poopColor;
+
+		    case 0: return this.backgroundColor;
+
+		    case 1: return this.foodColor;
+
+		    case -3: return this.eaterColor;
+		   
+		    case 7: return this.eaterColor;
+		   
+		    default: return "#123456";
+		}
 	}
 
 	getState() {
@@ -104,11 +128,11 @@ export class Game {
 				state: this.state, 
 				gameOver: gameOver}
 
+	}
+
+
+
 }
-
-
-
-
 
 
 
