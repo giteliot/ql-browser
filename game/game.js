@@ -31,7 +31,7 @@ export class Game {
 	}
 
 	popUp(index) {
-		return [index%this.width, index/this.width];
+		return [(index%this.width)*this.gridRatio, Math.floor(index/this.width)*this.gridRatio];
 	}
 
 	getColorOfValue(cellValue) {
@@ -105,7 +105,11 @@ export class Game {
 
 		this.state[oldPosition] = hasJustEaten ? -1 : 0;
 
-		this.eater = [(this.eater[0]+addedCoord[0])%this.width, (this.eater[1]+addedCoord[1])%this.height];
+		let x = (this.eater[0]+addedCoord[0])%this.width;
+		let y = (this.eater[1]+addedCoord[1])%this.height;
+		x = x >= 0 ? x:x+this.width;
+		y = y >= 0 ? y:y+this.width;
+		this.eater = [x, y];
 
 		const newPosition = this.flatten(this.eater);
 		const objectInNewPosition = this.state[newPosition];
@@ -114,7 +118,7 @@ export class Game {
 		let gameOver = false;
 
 		if (objectInNewPosition == 0) {
-			this.state[newPosition] = 1;
+			this.state[newPosition] = 7;
 		} else if (objectInNewPosition == 1) {
 			this.state[newPosition] = -3;
 			this.addFood();
