@@ -1,11 +1,8 @@
 #TODO
 
-STEP
-	- no score, just reward
-	- no win condition for now; play until death //consider if adding
-
-UI
-	- tie UI with Game
-	- tie UI to HTML buttons
-
 TRAIN
+
+	- IMPLEMENT getStateTensor(), and understand what it actually is!
+	- create the agent; only dependent on browser!
+	- create the training
+	- make the agent play

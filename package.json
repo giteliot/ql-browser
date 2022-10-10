@@ -5,11 +5,13 @@
   "main": "index.js",
   "scripts": {
     "test": "babel-node ./game/tests/game_test.js",
-    "start": "babel-node ./server.js"
+    "start": "babel-node ./server.js",
+    "train": "babel-node ./game/train.js"
   },
   "author": "rexismad",
   "license": "ISC",
   "dependencies": {
+    "@tensorflow/tfjs-node": "^3.21.1",
     "express": "^4.18.1",
     "http": "^0.0.1-security",
     "path": "^0.12.7"

@@ -108,7 +108,7 @@ export class Game {
 		let x = (this.eater[0]+addedCoord[0])%this.width;
 		let y = (this.eater[1]+addedCoord[1])%this.height;
 		x = x >= 0 ? x:x+this.width;
-		y = y >= 0 ? y:y+this.width;
+		y = y >= 0 ? y:y+this.height;
 		this.eater = [x, y];
 
 		const newPosition = this.flatten(this.eater);
@@ -135,8 +135,38 @@ export class Game {
 	}
 
 
+	getRandomAction() {
+		const r = Math.floor(Math.random() * 4);
+		switch (r) {
+			case 0: return "UP";
+			case 1: return "DOWN";
+			case 2: return "LEFT";
+			case 3: return "RIGHT";
+		}
+	}
 
+	getStateTensor() {
+	  if (!Array.isArray(this.state)) {
+	    state = [state];
+	  }
+	  const numExamples = state.length;
+	  // TODO(cais): Maintain only a single buffer for efficiency.
+	  const buffer = tf.buffer([numExamples, this.height, this.width, 2]);
+
+	  for (let n = 0; n < numExamples; ++n) {
+	    if (state[n] == null) {
+	      continue;
+	    }
+	    // Mark the snake.
+	    state[n].s.forEach((yx, i) => {
+	      buffer.set(i === 0 ? 2 : 1, n, yx[0], yx[1], 0);
+	    });
+
+	    // Mark the fruit(s).
+	    state[n].f.forEach(yx => {
+	      buffer.set(1, n, yx[0], yx[1], 1);
+	    });
+	  }
+	  return buffer.toTensor();
+	}
 }
-
-
-
