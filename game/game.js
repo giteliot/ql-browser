@@ -146,27 +146,15 @@ export class Game {
 	}
 
 	getStateTensor() {
-	  if (!Array.isArray(this.state)) {
-	    state = [state];
-	  }
-	  const numExamples = state.length;
-	  // TODO(cais): Maintain only a single buffer for efficiency.
-	  const buffer = tf.buffer([numExamples, this.height, this.width, 2]);
+	  const state = this.getState();
 
-	  for (let n = 0; n < numExamples; ++n) {
-	    if (state[n] == null) {
-	      continue;
-	    }
-	    // Mark the snake.
-	    state[n].s.forEach((yx, i) => {
-	      buffer.set(i === 0 ? 2 : 1, n, yx[0], yx[1], 0);
-	    });
+	  const buffer = tf.buffer([this.height, this.width]);
 
-	    // Mark the fruit(s).
-	    state[n].f.forEach(yx => {
-	      buffer.set(1, n, yx[0], yx[1], 1);
-	    });
-	  }
+	  state.forEach((v, i) => {
+	  	let coord = this.popUp(i);
+	  	buffer.set(v[0], v[1], v);
+	  });
+
 	  return buffer.toTensor();
 	}
 }
