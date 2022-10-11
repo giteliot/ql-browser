@@ -1,4 +1,5 @@
 import {createDeepQNetwork} from './dqn.js';
+import * as tf from '@tensorflow/tfjs';
 
 export class Agent {
     constructor(game, config) {
@@ -47,8 +48,7 @@ export class Agent {
     } else {
       // Greedily pick an action based on online DQN output.
       tf.tidy(() => {
-        const stateTensor =
-            getStateTensor(state, this.game.height, this.game.width)
+        const stateTensor = game.getStateTensor()
         // what's this all_actions?
         //action = ALL_ACTIONS[
         //    this.onlineNetwork.predict(stateTensor).argMax(-1).dataSync()[0]];

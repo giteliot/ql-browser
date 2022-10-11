@@ -1,8 +1,6 @@
 #TODO
 
 TRAIN
-
-	- IMPLEMENT getStateTensor(), and understand what it actually is!
-	- create the agent; only dependent on browser!
-	- create the training
+	- create the agent; only dependent on browser! (for now it uses the tensorflow module)
+	- create the training # function train() needs to be checked
 	- make the agent play

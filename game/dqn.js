@@ -34,18 +34,18 @@ export function createDeepQNetwork(h, w, numActions) {
     kernelSize: 3,
     strides: 1,
     activation: 'relu',
-    inputShape: [h, w, 2]
+    inputShape: [h, w]
   }));
   model.add(tf.layers.batchNormalization());
   model.add(tf.layers.conv2d({
-    filters: 256,
+    filters: 128, //256?
     kernelSize: 3,
     strides: 1,
     activation: 'relu'
   }));
   model.add(tf.layers.batchNormalization());
   model.add(tf.layers.conv2d({
-    filters: 256,
+    filters: 128,
     kernelSize: 3,
     strides: 1,
     activation: 'relu'
