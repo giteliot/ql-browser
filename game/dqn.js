@@ -1,3 +1,4 @@
+import * as tf from '@tensorflow/tfjs';
 /**
  * @license
  * Copyright 2019 Google LLC. All Rights Reserved.
@@ -34,7 +35,7 @@ export function createDeepQNetwork(h, w, numActions) {
     kernelSize: 3,
     strides: 1,
     activation: 'relu',
-    inputShape: [h, w]
+    inputShape: [h, w, 4] //idk
   }));
   model.add(tf.layers.batchNormalization());
   model.add(tf.layers.conv2d({
@@ -54,7 +55,6 @@ export function createDeepQNetwork(h, w, numActions) {
   model.add(tf.layers.dense({units: 100, activation: 'relu'}));
   model.add(tf.layers.dropout({rate: 0.25}));
   model.add(tf.layers.dense({units: numActions}));
-
   return model;
 }
 

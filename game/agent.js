@@ -1,9 +1,10 @@
 import {createDeepQNetwork} from './dqn.js';
 import * as tf from '@tensorflow/tfjs';
+import {ReplayMemory} from './memory.js';
 
 export class Agent {
-    constructor(game, config) {
-    assertPositiveInteger(config.epsilonDecayFrames);
+
+  constructor(game, config) {
 
     this.game = game;
 
@@ -39,9 +40,11 @@ export class Agent {
         this.epsilonInit + this.epsilonIncrement_  * this.frameCount;
     this.frameCount++;
 
+
     // The epsilon-greedy algorithm.
     let action;
     const state = this.game.getState();
+
     if (Math.random() < this.epsilon) {
       // Pick an action at random.
       action = this.game.getRandomAction();
@@ -56,18 +59,20 @@ export class Agent {
       });
     }
 
-    const {reward: reward, nextState: state, gameOver: gameOver} = this.game.step(action);
+    //{reward: reward, nextState: state, gameOver: gameOver}
+    const stepResult = this.game.step(action);
 
-    this.replayMemory.append([state, action, reward, gameOver, nextState]);
+    this.replayMemory.append([state, action, stepResult.reward, stepResult.gameOver, stepResult.nextState]);
 
     const output = {
       action,
       cumulativeReward: this.game.score,
-      gameOver
+      stepResult.gameOver
     };
     if (gameOver) {
       this.reset();
     }
     return output;
+  
   }
 }
