@@ -51,28 +51,64 @@ export class Agent {
     } else {
       // Greedily pick an action based on online DQN output.
       tf.tidy(() => {
-        const stateTensor = game.getStateTensor()
+        const stateTensor = this.game.getStateTensor()
+        stateTensor.print()
         // what's this all_actions?
         //action = ALL_ACTIONS[
         //    this.onlineNetwork.predict(stateTensor).argMax(-1).dataSync()[0]];
-        action = his.onlineNetwork.predict(stateTensor).argMax(-1).dataSync()[0];
+        action = this.onlineNetwork.predict(stateTensor).argMax(-1).dataSync()[0];
       });
     }
 
-    //{reward: reward, nextState: state, gameOver: gameOver}
     const stepResult = this.game.step(action);
 
     this.replayMemory.append([state, action, stepResult.reward, stepResult.gameOver, stepResult.nextState]);
 
     const output = {
-      action,
+      action: action,
       cumulativeReward: this.game.score,
-      stepResult.gameOver
+      gameOver: stepResult.gameOver
     };
-    if (gameOver) {
+    
+    if (output.gameOver) {
       this.reset();
     }
     return output;
   
   }
+
+  trainOnReplayBatch(batchSize, gamma, optimizer) {
+    
+    // Get a batch of examples from the replay buffer.
+    const batch = this.replayMemory.sample(batchSize);
+    const lossFunction = () => tf.tidy(() => {
+      const stateTensor = getStateTensor(
+          batch.map(example => example[0]), this.game.height, this.game.width);
+      const actionTensor = tf.tensor1d(
+          batch.map(example => example[1]), 'int32');
+      const qs = this.onlineNetwork.apply(stateTensor, {training: true})
+          .mul(tf.oneHot(actionTensor, NUM_ACTIONS)).sum(-1);
+
+      const rewardTensor = tf.tensor1d(batch.map(example => example[2]));
+      const nextStateTensor = getStateTensor(
+          batch.map(example => example[4]), this.game.height, this.game.width);
+      const nextMaxQTensor =
+          this.targetNetwork.predict(nextStateTensor).max(-1);
+      const doneMask = tf.scalar(1).sub(
+          tf.tensor1d(batch.map(example => example[3])).asType('float32'));
+      const targetQs =
+          rewardTensor.add(nextMaxQTensor.mul(doneMask).mul(gamma));
+      return tf.losses.meanSquaredError(targetQs, qs);
+    });
+
+    // Calculate the gradients of the loss function with repsect to the weights
+    // of the online DQN.
+    const grads = tf.variableGrads(lossFunction);
+    // Use the gradients to update the online DQN's weights.
+    optimizer.applyGradients(grads.grads);
+    tf.dispose(grads);
+    // TODO(cais): Return the loss value here?
+    
+  }
+
 }

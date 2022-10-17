@@ -1,7 +1,26 @@
 import {Game} from './game.js'
 import {Agent} from './agent.js'
+
 const tf = require('@tensorflow/tfjs-node');
 
+class MovingAverager {
+  constructor(bufferLength) {
+    this.buffer = [];
+    for (let i = 0; i < bufferLength; ++i) {
+      this.buffer.push(null);
+    }
+  }
+
+  append(x) {
+    this.buffer.shift();
+    this.buffer.push(x);
+  }
+
+  average() {
+    return this.buffer.reduce((x, prev) => x + prev) / this.buffer.length;
+  }
+}
+console.log("AAAAAH");
 const game = new Game();
 const agentConfig = {
     replayBufferSize: 1e4,
@@ -24,39 +43,21 @@ const agentConfig = {
 
 const agent = new Agent(game, agentConfig);
 
-console.log(game);
 train(agent, trainConfig);
 
-class MovingAverager {
-  constructor(bufferLength) {
-    this.buffer = [];
-    for (let i = 0; i < bufferLength; ++i) {
-      this.buffer.push(null);
-    }
-  }
-
-  append(x) {
-    this.buffer.shift();
-    this.buffer.push(x);
-  }
-
-  average() {
-    return this.buffer.reduce((x, prev) => x + prev) / this.buffer.length;
-  }
-}
 
 export async function train(agent, config) {
-	//const batchSize, gamma, learningRate, cumulativeRewardThreshold,
+  //const batchSize, gamma, learningRate, cumulativeRewardThreshold,
   //  maxNumFrames, syncEveryFrames, savePath, logDir = config;
     
-	let summaryWriter;
-	if (config.logDir != null) {
-    	summaryWriter = tf.node.summaryFileWriter(config.logDir);
-	}
-
-	for (let i = 0; i < agent.replayBufferSize; ++i) {
-		agent.playStep();
-	}
+  let summaryWriter;
+  if (config.logDir != null) {
+      summaryWriter = tf.node.summaryFileWriter(config.logDir);
+  }
+  console.log("got summary");
+  for (let i = 0; i < agent.replayBufferSize; ++i) {
+    agent.playStep();
+  }
 
   // Moving averager: cumulative reward across 100 most recent 100 episodes.
   const rewardAverager100 = new MovingAverager(100);
@@ -66,11 +67,17 @@ export async function train(agent, config) {
   let tPrev = new Date().getTime();
   let frameCountPrev = agent.frameCount;
   let averageReward100Best = -Infinity;
-
+  
   while (true) {
-    agent.trainOnReplayBatch(config.batchSize, config.gamma, optimizer);
-    const {cumulativeReward, done, fruitsEaten} = agent.playStep();
+    console.log("started training");
+    //agent.trainOnReplayBatch(config.batchSize, config.gamma, optimizer);
+    console.log("finished replaying");
+    //const {action, cumulativeReward, gameOver} = agent.playStep();
+    console.log("played step");
+    break;
     if (done) {
+      
+      /*
       const t = new Date().getTime();
       const framesPerSecond =
           (agent.frameCount - frameCountPrev) / (t - tPrev) * 1e3;
@@ -116,8 +123,10 @@ export async function train(agent, config) {
       copyWeights(agent.targetNetwork, agent.onlineNetwork);
       console.log('Sync\'ed weights from online network to target network');
     }
-  }
+    */
+    }
 
+  }
 }
 
 

@@ -1,3 +1,4 @@
+const tf = require('@tensorflow/tfjs-node');
 // -1 dead cell
 // 0 free cell
 // 1 food cell
@@ -147,12 +148,13 @@ export class Game {
 
 	getStateTensor() {
 	  const state = this.getState();
-
-	  const buffer = tf.buffer([this.height, this.width]);
+	  //console.log(state);
+	  const buffer = tf.buffer([1, this.height, this.width, 5]);
 
 	  state.forEach((v, i) => {
 	  	let coord = this.popUp(i);
-	  	buffer.set(v[0], v[1], v);
+	  	console.log(v);
+	  	buffer.set(1, 1, coord[0], coord[1], v);
 	  });
 
 	  return buffer.toTensor();
