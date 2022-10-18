@@ -70,14 +70,13 @@ export async function train(agent, config) {
   
   while (true) {
     console.log("started training");
-    //agent.trainOnReplayBatch(config.batchSize, config.gamma, optimizer);
+    agent.trainOnReplayBatch(config.batchSize, config.gamma, optimizer);
     console.log("finished replaying");
-    //const {action, cumulativeReward, gameOver} = agent.playStep();
+    const {action, cumulativeReward, gameOver} = agent.playStep();
     console.log("played step");
-    break;
+
     if (done) {
       
-      /*
       const t = new Date().getTime();
       const framesPerSecond =
           (agent.frameCount - frameCountPrev) / (t - tPrev) * 1e3;
@@ -122,8 +121,6 @@ export async function train(agent, config) {
     if (agent.frameCount % syncEveryFrames === 0) {
       copyWeights(agent.targetNetwork, agent.onlineNetwork);
       console.log('Sync\'ed weights from online network to target network');
-    }
-    */
     }
 
   }

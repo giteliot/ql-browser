@@ -1,6 +1,8 @@
 #TODO
 
 TRAIN
+	- fix getStateTensor()
+	- fix neural network
 	- create the agent; only dependent on browser! (for now it uses the tensorflow module)
 	- create the training # function train() needs to be checked
 	- make the agent play

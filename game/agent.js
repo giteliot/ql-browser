@@ -2,6 +2,8 @@ import {createDeepQNetwork} from './dqn.js';
 import * as tf from '@tensorflow/tfjs';
 import {ReplayMemory} from './memory.js';
 
+const NUM_ACTIONS = 4;
+
 export class Agent {
 
   constructor(game, config) {
@@ -15,9 +17,9 @@ export class Agent {
         this.epsilonDecayFrames;
 
     this.onlineNetwork =
-        createDeepQNetwork(game.height,  game.width, 4);
+        createDeepQNetwork(game.height,  game.width, NUM_ACTIONS);
     this.targetNetwork =
-        createDeepQNetwork(game.height,  game.width, 4);
+        createDeepQNetwork(game.height,  game.width, NUM_ACTIONS);
     // Freeze taget network: it's weights are updated only through copying from
     // the online network.
     this.targetNetwork.trainable = false;
@@ -51,15 +53,15 @@ export class Agent {
     } else {
       // Greedily pick an action based on online DQN output.
       tf.tidy(() => {
-        const stateTensor = this.game.getStateTensor()
-        stateTensor.print()
+        const stateTensor = this.game.getStateTensor(this.game.getState());
         // what's this all_actions?
         //action = ALL_ACTIONS[
         //    this.onlineNetwork.predict(stateTensor).argMax(-1).dataSync()[0]];
-        action = this.onlineNetwork.predict(stateTensor).argMax(-1).dataSync()[0];
+        action = this.game.getActionFromInt(
+          this.onlineNetwork.predict(stateTensor).argMax(-1).dataSync()[0]
+          );
       });
     }
-
     const stepResult = this.game.step(action);
 
     this.replayMemory.append([state, action, stepResult.reward, stepResult.gameOver, stepResult.nextState]);
@@ -82,16 +84,21 @@ export class Agent {
     // Get a batch of examples from the replay buffer.
     const batch = this.replayMemory.sample(batchSize);
     const lossFunction = () => tf.tidy(() => {
-      const stateTensor = getStateTensor(
-          batch.map(example => example[0]), this.game.height, this.game.width);
+      const stateTensor = this.game.getStateTensor(
+          batch.map(example => example[0])
+          );
       const actionTensor = tf.tensor1d(
           batch.map(example => example[1]), 'int32');
+
       const qs = this.onlineNetwork.apply(stateTensor, {training: true})
           .mul(tf.oneHot(actionTensor, NUM_ACTIONS)).sum(-1);
 
       const rewardTensor = tf.tensor1d(batch.map(example => example[2]));
-      const nextStateTensor = getStateTensor(
-          batch.map(example => example[4]), this.game.height, this.game.width);
+
+      const nextStateTensor = this.game.getStateTensor(
+          batch.map(example => example[4])
+          );
+
       const nextMaxQTensor =
           this.targetNetwork.predict(nextStateTensor).max(-1);
       const doneMask = tf.scalar(1).sub(

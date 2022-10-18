@@ -100,6 +100,9 @@ export class Game {
 
 	step(action) {
 		const addedCoord = ACTION[action];
+		if (!addedCoord) {
+			throw new Error("TERRIBILE = "+action)
+		}
 
 		const oldPosition = this.flatten(this.eater);
 		const hasJustEaten = this.state[oldPosition] == -3;
@@ -146,17 +149,32 @@ export class Game {
 		}
 	}
 
-	getStateTensor() {
-	  const state = this.getState();
-	  //console.log(state);
-	  const buffer = tf.buffer([1, this.height, this.width, 5]);
+	getStateTensor(state) {
+		if (!Array.isArray(state[0])) {
+			state = [state]
+		}
 
-	  state.forEach((v, i) => {
-	  	let coord = this.popUp(i);
-	  	console.log(v);
-	  	buffer.set(1, 1, coord[0], coord[1], v);
-	  });
+		const numExamples = state.length;
+		const buffer = tf.buffer([numExamples, this.height, this.width, 1]);
 
-	  return buffer.toTensor();
+		for (let n = 0; n < numExamples; ++n) {
+		    if (state[n] == null) {
+		      continue;
+		    }
+
+		    state[n].forEach((v, i) => {
+				let coord = this.popUp(i);
+				//console.log(v, coord[1]/32, coord[0]/32);
+				buffer.set(v, n, coord[1]/32, coord[0]/32, 1);
+			});
+
+		}
+		
+		return buffer.toTensor();
+	}
+
+	getActionFromInt(intAction) {
+		const actions = ["UP", "DOWN", "LEFT", "RIGHT"];
+		return actions[intAction];
 	}
 }
