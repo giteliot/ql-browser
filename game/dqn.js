@@ -1,4 +1,4 @@
-import * as tf from '@tensorflow/tfjs';
+const tf = require('@tensorflow/tfjs-node-gpu');
 /**
  * @license
  * Copyright 2019 Google LLC. All Rights Reserved.

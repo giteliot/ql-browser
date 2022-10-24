@@ -1,4 +1,5 @@
-const tf = require('@tensorflow/tfjs-node');
+//const tf = require('@tensorflow/tfjs-node');
+const tf = require('@tensorflow/tfjs-node-gpu');
 // -1 dead cell
 // 0 free cell
 // 1 food cell
@@ -132,6 +133,7 @@ export class Game {
 			gameOver = true;
 		}
 
+		this.score += reward;
 		return {reward: reward, 
 				state: this.state, 
 				gameOver: gameOver}

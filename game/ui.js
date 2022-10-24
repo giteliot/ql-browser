@@ -19,8 +19,29 @@ function initSoloGame() {
 
 	startSoloBtn.innerText = "RESET";
 	startSoloBtn.addEventListener('click', async () => {
-		initSoloGame(true);
+		initSoloGame();
 	});
+}
+
+function initBotGame() {
+	game = new Game();
+	game.reset();
+	score = 0;
+	playEnabled = false;
+	
+	renderGame(game, canvas);
+
+	startBotBtn.innerText = "RESET";
+	startBotBtn.addEventListener('click', async () => {
+		initBotGame();
+	});
+
+	let gameOver = false;
+
+	while (!gameOver) {
+		
+	}
+
 }
 
 function renderGame(game, canvas) {
@@ -80,6 +101,10 @@ document.onkeydown = function(e) {
 
 startSoloBtn.addEventListener('click', async () => {
 	initSoloGame();
+});
+
+startBotBtn.addEventListener('click', async () => {
+	initBotGame();
 });
 
 

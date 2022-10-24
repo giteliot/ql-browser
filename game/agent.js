@@ -1,5 +1,6 @@
 import {createDeepQNetwork} from './dqn.js';
-import * as tf from '@tensorflow/tfjs';
+//import * as tf from '@tensorflow/tfjs';
+const tf = require('@tensorflow/tfjs-node-gpu');
 import {ReplayMemory} from './memory.js';
 
 const NUM_ACTIONS = 4;
@@ -71,8 +72,8 @@ export class Agent {
       cumulativeReward: this.game.score,
       gameOver: stepResult.gameOver
     };
-    
     if (output.gameOver) {
+      console.log("game over with "+this.game.score)
       this.reset();
     }
     return output;

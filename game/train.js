@@ -1,7 +1,9 @@
-import {Game} from './game.js'
-import {Agent} from './agent.js'
-
-const tf = require('@tensorflow/tfjs-node');
+import {Game} from './game.js';
+import {Agent} from './agent.js';
+import {copyWeights} from './dqn';
+import * as fs from 'fs';
+const tf = require('@tensorflow/tfjs-node-gpu');
+//const tf = require('@tensorflow/tfjs-node');
 
 class MovingAverager {
   constructor(bufferLength) {
@@ -20,7 +22,7 @@ class MovingAverager {
     return this.buffer.reduce((x, prev) => x + prev) / this.buffer.length;
   }
 }
-console.log("AAAAAH");
+
 const game = new Game();
 const agentConfig = {
     replayBufferSize: 1e4,
@@ -46,7 +48,7 @@ const agent = new Agent(game, agentConfig);
 train(agent, trainConfig);
 
 
-export async function train(agent, config) {
+ async function train(agent, config) {
   //const batchSize, gamma, learningRate, cumulativeRewardThreshold,
   //  maxNumFrames, syncEveryFrames, savePath, logDir = config;
     
@@ -69,13 +71,10 @@ export async function train(agent, config) {
   let averageReward100Best = -Infinity;
   
   while (true) {
-    console.log("started training");
     agent.trainOnReplayBatch(config.batchSize, config.gamma, optimizer);
-    console.log("finished replaying");
     const {action, cumulativeReward, gameOver} = agent.playStep();
-    console.log("played step");
 
-    if (done) {
+    if (gameOver) {
       
       const t = new Date().getTime();
       const framesPerSecond =
@@ -109,7 +108,7 @@ export async function train(agent, config) {
 
       if (averageReward100 > averageReward100Best) {
         averageReward100Best = averageReward100;
-        if (savePath != null) {
+        if (config.savePath != null) {
           if (!fs.existsSync(config.savePath)) {
             mkdir('-p', config.savePath);
           }
@@ -118,7 +117,7 @@ export async function train(agent, config) {
         }
       }
     }
-    if (agent.frameCount % syncEveryFrames === 0) {
+    if (agent.frameCount % config.syncEveryFrames === 0) {
       copyWeights(agent.targetNetwork, agent.onlineNetwork);
       console.log('Sync\'ed weights from online network to target network');
     }

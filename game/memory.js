@@ -1,4 +1,4 @@
-import * as tf from '@tensorflow/tfjs';
+const tf = require('@tensorflow/tfjs-node-gpu');
 
 /** Replay buffer for DQN training. */
 export class ReplayMemory {
