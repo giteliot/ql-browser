@@ -23,7 +23,7 @@ function initSoloGame() {
 	});
 }
 
-function initBotGame() {
+async function initBotGame() {
 	game = new Game();
 	game.reset();
 	score = 0;
@@ -36,11 +36,27 @@ function initBotGame() {
 		initBotGame();
 	});
 
+	console.log("set up pre model");
+
 	let gameOver = false;
 
-	while (!gameOver) {
-		
-	}
+	const qNet = await tf.loadLayersModel('./models/dqn/model.json');
+
+	console.log("model created");
+
+	let intervalId = setInterval(async () => {
+		console.log("init step");
+		let stateTensor = game.getStateTensor(game.getState());
+		let actionInt = await qNet.predict(stateTensor).argMax(-1).dataSync()[0];
+		let action = game.getActionFromInt(actionInt);
+		console.log("action = "+action);
+		let stepResult = game.step(action);
+		scoreAndRender(stepResult);
+		if (stepResult.gameOver) {
+			clearInterval(intervalId);
+		}
+		// await qNet.predict(game.getStateTensor(game.getState()));
+	}, 300)
 
 }
 
@@ -66,7 +82,7 @@ function destroyGame() {
 	renderGame(game, canvas);
 }
 
-function step(result) {
+function scoreAndRender(result) {
 	console.log(game.eater);
 
 	if (result.gameOver) {
@@ -85,16 +101,16 @@ document.onkeydown = function(e) {
 		return;
     switch (e.keyCode) {
         case 37:
-            step(game.step("LEFT"));
+            scoreAndRender(game.step("LEFT"));
             break;
         case 38:
-            step(game.step("UP"));
+            scoreAndRender(game.step("UP"));
             break;
         case 39:
-            step(game.step("RIGHT"));
+            scoreAndRender(game.step("RIGHT"));
             break;
         case 40:
-            step(game.step("DOWN"));
+            scoreAndRender(game.step("DOWN"));
             break;
     }
 };

@@ -1,5 +1,5 @@
 //const tf = require('@tensorflow/tfjs-node');
-const tf = require('@tensorflow/tfjs-node-gpu');
+//const tf = require('@tensorflow/tfjs-node-gpu');
 // -1 dead cell
 // 0 free cell
 // 1 food cell

@@ -1,13 +1,13 @@
 import {createDeepQNetwork} from './dqn.js';
-//import * as tf from '@tensorflow/tfjs';
-const tf = require('@tensorflow/tfjs-node-gpu');
+const tf = require('@tensorflow/tfjs-node')
+// const tf = require('@tensorflow/tfjs-node-gpu');
 import {ReplayMemory} from './memory.js';
 
 const NUM_ACTIONS = 4;
 
 export class Agent {
 
-  constructor(game, config) {
+  constructor(game, config, qNet) {
 
     this.game = game;
 
@@ -17,10 +17,16 @@ export class Agent {
     this.epsilonIncrement_ = (this.epsilonFinal - this.epsilonInit) /
         this.epsilonDecayFrames;
 
-    this.onlineNetwork =
+    if (qNet) {
+      this.onlineNetwork = qNet;
+      this.targetNetwork = qNet;
+    } else {
+      this.onlineNetwork =
         createDeepQNetwork(game.height,  game.width, NUM_ACTIONS);
-    this.targetNetwork =
+      this.targetNetwork =
         createDeepQNetwork(game.height,  game.width, NUM_ACTIONS);
+    }
+    
     // Freeze taget network: it's weights are updated only through copying from
     // the online network.
     this.targetNetwork.trainable = false;
@@ -61,6 +67,7 @@ export class Agent {
         action = this.game.getActionFromInt(
           this.onlineNetwork.predict(stateTensor).argMax(-1).dataSync()[0]
           );
+        //console.log(action);
       });
     }
     const stepResult = this.game.step(action);

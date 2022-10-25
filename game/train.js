@@ -2,8 +2,8 @@ import {Game} from './game.js';
 import {Agent} from './agent.js';
 import {copyWeights} from './dqn';
 import * as fs from 'fs';
-const tf = require('@tensorflow/tfjs-node-gpu');
-//const tf = require('@tensorflow/tfjs-node');
+//const tf = require('@tensorflow/tfjs-node-gpu');
+const tf = require('@tensorflow/tfjs-node');
 
 class MovingAverager {
   constructor(bufferLength) {
@@ -33,20 +33,18 @@ const agentConfig = {
   };
 
   const trainConfig = {
-  batchSize: 64, 
+    batchSize: 64, 
     gamma: 0.99,
     learningRate: 1e-3,
     cumulativeRewardThreshold: 100, 
     maxNumFrames: 1e6,
     syncEveryFrames: 1e3, 
-    savePath: './models/dqn', 
+    savePath: './game/models/dqn', 
     logDir: null
-  }
+  };
 
 const agent = new Agent(game, agentConfig);
-
 train(agent, trainConfig);
-
 
  async function train(agent, config) {
   //const batchSize, gamma, learningRate, cumulativeRewardThreshold,
