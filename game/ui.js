@@ -1,12 +1,22 @@
 import {Game} from './game.js'
+import {Agent} from './agent.js'
 
 const canvas = document.getElementById('main-canvas')
 const startSoloBtn = document.getElementById('solo')
 const startBotBtn = document.getElementById('bot')
 const scoreText = document.getElementById('score')
 
+const agentConfig = {
+    replayBufferSize: 1e4,
+    epsilonInit: 0.5,
+    epsilonFinal: 0.01,
+    epsilonDecayFrames: 1e5,
+    learningRate: 1e-3
+  };
+
 let playEnabled = false;
 let game = undefined;
+let agent = undefined;
 let score = 0;
 
 function initSoloGame() {
@@ -23,41 +33,45 @@ function initSoloGame() {
 	});
 }
 
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
 async function initBotGame() {
-	game = new Game();
-	game.reset();
-	score = 0;
+	if (!game) {
+		game = new Game();
+		game.reset();
+		score = 0;
+	}
+	
 	playEnabled = false;
 	
 	renderGame(game, canvas);
 
 	startBotBtn.innerText = "RESET";
-	startBotBtn.addEventListener('click', async () => {
-		initBotGame();
-	});
+/*	startBotBtn.addEventListener('click', async () => {
+		destroyGame();
+	});*/
 
 	console.log("set up pre model");
 
 	let gameOver = false;
 
-	const qNet = await tf.loadLayersModel('./models/dqn/model.json');
+	// const qNet = await tf.loadLayersModel('./models/dqn/model.json');
+
+	agent = new Agent(game, agentConfig);
 
 	console.log("model created");
 
-	let intervalId = setInterval(async () => {
-		console.log("init step");
-		let stateTensor = game.getStateTensor(game.getState());
-		let actionInt = await qNet.predict(stateTensor).argMax(-1).dataSync()[0];
-		let action = game.getActionFromInt(actionInt);
-		console.log("action = "+action);
-		let stepResult = game.step(action);
-		scoreAndRender(stepResult);
-		if (stepResult.gameOver) {
-			clearInterval(intervalId);
-		}
-		// await qNet.predict(game.getStateTensor(game.getState()));
-	}, 300)
+	let k = 0;
+	let stepResult = {};
+	stepResult.gameOver = false;
 
+	while(!stepResult.gameOver) {
+		k++;
+		console.log("stepping "+k);
+		stepResult = await agent.playStep();
+		scoreAndRender(stepResult);
+		await sleep(300);
+	}
 }
 
 function renderGame(game, canvas) {
@@ -83,13 +97,14 @@ function destroyGame() {
 }
 
 function scoreAndRender(result) {
-	console.log(game.eater);
-
 	if (result.gameOver) {
 		destroyGame();
 		return;
 	}
-	score += result.reward;
+	if (result.reward)
+		score += result.reward;
+	if (result.cumulativeReward)
+		score = result.cumulativeReward;
 	scoreText.innerText = score;
 
 	// console.log(result);

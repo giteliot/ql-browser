@@ -1,5 +1,5 @@
 import {createDeepQNetwork} from './dqn.js';
-const tf = require('@tensorflow/tfjs-node')
+// const tf = require('@tensorflow/tfjs-node')
 // const tf = require('@tensorflow/tfjs-node-gpu');
 import {ReplayMemory} from './memory.js';
 
@@ -57,6 +57,7 @@ export class Agent {
     if (Math.random() < this.epsilon) {
       // Pick an action at random.
       action = this.game.getRandomAction();
+      console.log("action from epsilon = "+action);
     } else {
       // Greedily pick an action based on online DQN output.
       tf.tidy(() => {
@@ -67,7 +68,7 @@ export class Agent {
         action = this.game.getActionFromInt(
           this.onlineNetwork.predict(stateTensor).argMax(-1).dataSync()[0]
           );
-        //console.log(action);
+        console.log("action from model = "+action);
       });
     }
     const stepResult = this.game.step(action);

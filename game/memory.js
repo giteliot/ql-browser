@@ -1,5 +1,5 @@
 //const tf = require('@tensorflow/tfjs-node-gpu');
-const tf = require('@tensorflow/tfjs-node');
+// const tf = require('@tensorflow/tfjs-node');
 /** Replay buffer for DQN training. */
 export class ReplayMemory {
   /**
