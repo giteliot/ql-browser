@@ -1,18 +1,12 @@
 import {Game} from './game.js'
 import {Agent} from './agent.js'
+import {sleep} from './utils.js'
 
 const canvas = document.getElementById('main-canvas')
 const startSoloBtn = document.getElementById('solo')
+const startTrainBtn = document.getElementById('train')
 const startBotBtn = document.getElementById('bot')
 const scoreText = document.getElementById('score')
-
-const agentConfig = {
-    replayBufferSize: 1e4,
-    epsilonInit: 0.5,
-    epsilonFinal: 0.01,
-    epsilonDecayFrames: 1e5,
-    learningRate: 1e-3
-  };
 
 let playEnabled = false;
 let game = undefined;
@@ -33,8 +27,6 @@ function initSoloGame() {
 	});
 }
 
-const sleep = ms => new Promise(r => setTimeout(r, ms));
-
 async function initBotGame() {
 	if (!game) {
 		game = new Game();
@@ -47,9 +39,6 @@ async function initBotGame() {
 	renderGame(game, canvas);
 
 	startBotBtn.innerText = "RESET";
-/*	startBotBtn.addEventListener('click', async () => {
-		destroyGame();
-	});*/
 
 	console.log("set up pre model");
 
@@ -57,7 +46,8 @@ async function initBotGame() {
 
 	// const qNet = await tf.loadLayersModel('./models/dqn/model.json');
 
-	agent = new Agent(game, agentConfig);
+	if (!agent)
+		agent = new Agent(game);
 
 	console.log("model created");
 
@@ -72,6 +62,26 @@ async function initBotGame() {
 		scoreAndRender(stepResult);
 		await sleep(300);
 	}
+}
+
+async function initTrain() {
+	const trainConfig = {
+	    batchSize: 64, 
+	    gamma: 0.99,
+	    learningRate: 1e-1,
+	    cumulativeRewardThreshold: 100, 
+	    maxNumFrames: 1e3,
+	    syncEveryFrames: 1000, 
+	    savePath: './game/models/dqn', 
+	    logDir: null
+	  };
+
+	if (!game)
+		game = new Game();
+	if (!agent)
+		agent = new Agent(game);
+
+	agent.train(trainConfig);
 }
 
 function renderGame(game, canvas) {
@@ -138,4 +148,6 @@ startBotBtn.addEventListener('click', async () => {
 	initBotGame();
 });
 
-
+startTrainBtn.addEventListener('click', async () => {
+	initTrain();
+});
