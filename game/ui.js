@@ -13,6 +13,17 @@ let game = undefined;
 let agent = undefined;
 let score = 0;
 
+const trainConfig = {
+    batchSize: 64, 
+    gamma: 0.99,
+    learningRate: 1e-2,
+    cumulativeRewardThreshold: 30, 
+    maxNumFrames: 1e4,
+    syncEveryFrames: 1000, 
+    savePath: 'localstorage://qliaModel', 
+    logDir: null
+  };
+
 function initSoloGame() {
 	game = new Game();
 	game.reset();
@@ -26,6 +37,7 @@ function initSoloGame() {
 		initSoloGame();
 	});
 }
+
 
 async function initBotGame() {
 	if (!game) {
@@ -46,8 +58,15 @@ async function initBotGame() {
 
 	// const qNet = await tf.loadLayersModel('./models/dqn/model.json');
 
-	if (!agent)
-		agent = new Agent(game);
+	if (!agent) {
+		console.log("agent not defined, creating a new one");
+		try {
+			const qNet = await tf.loadLayersModel(trainConfig.savePath);
+			agent = new Agent(game, qNet);
+		} catch (err) {
+			agent = new Agent(game);
+		}
+	}
 
 	console.log("model created");
 
@@ -65,23 +84,13 @@ async function initBotGame() {
 }
 
 async function initTrain() {
-	const trainConfig = {
-	    batchSize: 64, 
-	    gamma: 0.99,
-	    learningRate: 1e-1,
-	    cumulativeRewardThreshold: 100, 
-	    maxNumFrames: 1e3,
-	    syncEveryFrames: 1000, 
-	    savePath: './game/models/dqn', 
-	    logDir: null
-	  };
-
 	if (!game)
 		game = new Game();
 	if (!agent)
 		agent = new Agent(game);
 
-	agent.train(trainConfig);
+	await agent.train(trainConfig);
+	await agent.saveModel(trainConfig.savePath);
 }
 
 function renderGame(game, canvas) {

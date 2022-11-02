@@ -8,9 +8,9 @@ const NUM_ACTIONS = 4;
 
 const config = {
     replayBufferSize: 1e4,
-    epsilonInit: 0.5,
+    epsilonInit: 0.4,
     epsilonFinal: 0.01,
-    epsilonDecayFrames: 1e5,
+    epsilonDecayFrames: 1e2,
     learningRate: 1e-3
   };
 
@@ -43,10 +43,13 @@ export class Agent {
     this.epsilonDecayFrames = config.epsilonDecayFrames;
     this.epsilonIncrement_ = (this.epsilonFinal - this.epsilonInit) /
         this.epsilonDecayFrames;
+    this.frameCount = 0;
+
 
     if (qNet) {
       this.onlineNetwork = qNet;
       this.targetNetwork = qNet;
+      this.frameCount = this.epsilonDecayFrames;
     } else {
       this.onlineNetwork =
         createDeepQNetwork(game.height,  game.width, NUM_ACTIONS);
@@ -62,7 +65,6 @@ export class Agent {
 
     this.replayBufferSize = config.replayBufferSize;
     this.replayMemory = new ReplayMemory(config.replayBufferSize);
-    this.frameCount = 0;
     this.reset();
   }
 
@@ -70,7 +72,12 @@ export class Agent {
     this.game.reset();
   }
 
+  saveModel(path) {
+    this.onlineNetwork.save(path);
+  }
+
   playStep() {
+    //console.log(tf.memory ().numTensors)
     this.epsilon = this.frameCount >= this.epsilonDecayFrames ?
         this.epsilonFinal :
         this.epsilonInit + this.epsilonIncrement_  * this.frameCount;
@@ -110,20 +117,22 @@ export class Agent {
       this.reset();
     }
     return output;
-  
   }
 
   trainOnReplayBatch(batchSize, gamma, optimizer) {
-    
+
     // Get a batch of examples from the replay buffer.
     const batch = this.replayMemory.sample(batchSize);
+
     const lossFunction = () => tf.tidy(() => {
+
       const stateTensor = this.game.getStateTensor(
           batch.map(example => example[0])
           );
       const actionTensor = tf.tensor1d(
           batch.map(example => example[1]), 'int32');
 
+      // here lies the problem, idk why tho
       const qs = this.onlineNetwork.apply(stateTensor, {training: true})
           .mul(tf.oneHot(actionTensor, NUM_ACTIONS)).sum(-1);
 
@@ -172,6 +181,7 @@ export class Agent {
     console.log("> starting training");
     while (true) {
       this.trainOnReplayBatch(config.batchSize, config.gamma, optimizer);
+      
       const {action, cumulativeReward, gameOver} = this.playStep();
 
       if (gameOver) {
