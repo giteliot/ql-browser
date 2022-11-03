@@ -6,11 +6,16 @@
 // 7 eater cell
 // -3 eater just ate
 
+// 0 -> UP
+// 1 -> DOWN
+// 2 -> LEFT
+// 3 -> RIGHT
+
 const ACTION = {
-	"UP" : [0,-1],
-	"DOWN" : [0,1],
-	"LEFT" : [-1, 0],
-	"RIGHT" : [1,0]
+	0 : [0,-1],
+	1 : [0,1],
+	2 : [-1, 0],
+	3 : [1,0]
 }
 
 export class Game {
@@ -57,14 +62,16 @@ export class Game {
 	}
 
 	print() {
+		let outStr = "";
 		let tmpStr = "";
 		for (let k = 1; k < this.width*(this.height+1); k++) {
 			tmpStr += `${this.state[k-1]} `;
 			if (k%(this.width)==0) {
-				console.log(`${tmpStr}\n`);
+				outStr+=`${tmpStr}\n`;
 				tmpStr = "";
 			}
 		}
+		console.log(outStr); 
 	}
 
 	reset() {
@@ -135,20 +142,14 @@ export class Game {
 
 		this.score += reward;
 		return {reward: reward, 
-				state: this.state, 
+				nextState: this.state, 
 				gameOver: gameOver}
 
 	}
 
 
 	getRandomAction() {
-		const r = Math.floor(Math.random() * 4);
-		switch (r) {
-			case 0: return "UP";
-			case 1: return "DOWN";
-			case 2: return "LEFT";
-			case 3: return "RIGHT";
-		}
+		return Math.floor(Math.random() * 4);
 	}
 
 	getStateTensor(state) {

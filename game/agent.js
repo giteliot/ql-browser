@@ -7,7 +7,7 @@ import {copyWeights} from './dqn.js';
 const NUM_ACTIONS = 4;
 
 const config = {
-    replayBufferSize: 1e4,
+    replayBufferSize: 1e2,
     epsilonInit: 0.4,
     epsilonFinal: 0.01,
     epsilonDecayFrames: 1e2,
@@ -86,7 +86,7 @@ export class Agent {
 
     // The epsilon-greedy algorithm.
     let action;
-    const state = this.game.getState();
+    const state = this.game.getState().slice();
 
     if (Math.random() < this.epsilon) {
       // Pick an action at random.
@@ -96,13 +96,11 @@ export class Agent {
       // Greedily pick an action based on online DQN output.
       tf.tidy(() => {
         const stateTensor = this.game.getStateTensor(this.game.getState());
-        action = this.game.getActionFromInt(
-          this.onlineNetwork.predict(stateTensor).argMax(-1).dataSync()[0]
-          );
+        action = this.onlineNetwork.predict(stateTensor).argMax(-1).dataSync()[0]
         //console.log("action from model = "+action);
       });
     }
-
+    
     const stepResult = this.game.step(action);
 
     this.replayMemory.append([state, action, stepResult.reward, stepResult.gameOver, stepResult.nextState]);
@@ -119,6 +117,19 @@ export class Agent {
     return output;
   }
 
+  print(state) {
+    let outStr = "";
+    let tmpStr = "";
+    for (let k = 1; k < 15*(10+1); k++) {
+      tmpStr += `${state[k-1]} `;
+      if (k%(15)==0) {
+        outStr+=`${tmpStr}\n`;
+        tmpStr = "";
+      }
+    }
+    console.log(outStr); 
+  }
+
   trainOnReplayBatch(batchSize, gamma, optimizer) {
 
     // Get a batch of examples from the replay buffer.
@@ -132,6 +143,7 @@ export class Agent {
       const actionTensor = tf.tensor1d(
           batch.map(example => example[1]), 'int32');
 
+      this.onlineNetwork.apply(stateTensor, {training: true}).print()
       // here lies the problem, idk why tho
       const qs = this.onlineNetwork.apply(stateTensor, {training: true})
           .mul(tf.oneHot(actionTensor, NUM_ACTIONS)).sum(-1);
@@ -142,7 +154,7 @@ export class Agent {
           batch.map(example => example[4])
           );
 
-      const nextMaxQTensor =
+      const nextMaxQTensor = 
           this.targetNetwork.predict(nextStateTensor).max(-1);
       const doneMask = tf.scalar(1).sub(
           tf.tensor1d(batch.map(example => example[3])).asType('float32'));
@@ -164,7 +176,7 @@ export class Agent {
   train(config) {
     let summaryWriter;
     console.log("> filling memory");
-
+    // put it back to i < this.replayBufferSize
     for (let i = 0; i < this.replayBufferSize; ++i) {
       this.playStep();
     }

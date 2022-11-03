@@ -2,7 +2,7 @@
 
 TRAIN
 buggerinos
-- agent.js line 135
+- try to flatten everything to h*w from the beginning
 - Uncaught (in promise) Error: Failed to save model 'qliaModel' to local storage: size quota being exceeded is a possible cause of this failure: modelTopologyBytes=3888, weightSpecsBytes=1402, weightDataBytes=4217312.
 - after reset it doesn't render anymore smh
 
