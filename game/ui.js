@@ -18,7 +18,7 @@ const trainConfig = {
     gamma: 0.99,
     learningRate: 1e-2,
     cumulativeRewardThreshold: 30, 
-    maxNumFrames: 1e4,
+    maxNumFrames: 2e4,
     syncEveryFrames: 1000, 
     savePath: 'localstorage://qliaModel', 
     logDir: null
@@ -67,6 +67,8 @@ async function initBotGame() {
 			agent = new Agent(game);
 		}
 	}
+
+	agent.game = game;
 
 	console.log("model created");
 

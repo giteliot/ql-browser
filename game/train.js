@@ -28,8 +28,8 @@ const agentConfig = {
     replayBufferSize: 1e4,
     epsilonInit: 0.5,
     epsilonFinal: 0.01,
-    epsilonDecayFrames: 1e5,
-    learningRate: 1e-3
+    epsilonDecayFrames: 5e4,
+    learningRate: 1e-2
   };
 
   
@@ -48,6 +48,7 @@ train(agent, trainConfig);
   console.log("got summary");
   for (let i = 0; i < agent.replayBufferSize; ++i) {
     agent.playStep();
+    break;
   }
 
   // Moving averager: cumulative reward across 100 most recent 100 episodes.
@@ -58,7 +59,7 @@ train(agent, trainConfig);
   let tPrev = new Date().getTime();
   let frameCountPrev = agent.frameCount;
   let averageReward100Best = -Infinity;
-  
+  return;
   while (true) {
     agent.trainOnReplayBatch(config.batchSize, config.gamma, optimizer);
     const {action, cumulativeReward, gameOver} = agent.playStep();

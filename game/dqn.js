@@ -34,7 +34,7 @@ export function createDeepQNetwork(h, w, numActions) {
   const init = tf.initializers.heUniform();
   model.add(tf.layers.dense(
     {units: 24,
-     inputShape:[h, w],
+     inputShape:[h*w],
      activation:'relu',
      kernelInitializer:init}
   ));

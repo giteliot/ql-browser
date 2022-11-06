@@ -11,7 +11,7 @@ const config = {
     epsilonInit: 0.4,
     epsilonFinal: 0.01,
     epsilonDecayFrames: 1e2,
-    learningRate: 1e-3
+    learningRate: 1e-2
   };
 
 class MovingAverager {
@@ -92,19 +92,24 @@ export class Agent {
       // Pick an action at random.
       action = this.game.getRandomAction();
       //console.log("action from epsilon = "+action);
+      console.log("random -> "+action);
     } else {
       // Greedily pick an action based on online DQN output.
       tf.tidy(() => {
         const stateTensor = this.game.getStateTensor(this.game.getState());
+        console.log("state tensor -> ")
+        this.print(stateTensor.dataSync());
         action = this.onlineNetwork.predict(stateTensor).argMax(-1).dataSync()[0]
         //console.log("action from model = "+action);
+        console.log("random -> "+action);
       });
     }
     
     const stepResult = this.game.step(action);
-
+    console.log("result")
+    console.log(stepResult);
     this.replayMemory.append([state, action, stepResult.reward, stepResult.gameOver, stepResult.nextState]);
-
+    this.print(stepResult.nextState)
     const output = {
       action: action,
       cumulativeReward: this.game.score,
@@ -143,7 +148,6 @@ export class Agent {
       const actionTensor = tf.tensor1d(
           batch.map(example => example[1]), 'int32');
 
-      this.onlineNetwork.apply(stateTensor, {training: true}).print()
       // here lies the problem, idk why tho
       const qs = this.onlineNetwork.apply(stateTensor, {training: true})
           .mul(tf.oneHot(actionTensor, NUM_ACTIONS)).sum(-1);

@@ -136,7 +136,6 @@ export class Game {
 			this.addFood();
 			reward = 20;
 		} else if (objectInNewPosition == -1) {
-			reward = -30;
 			gameOver = true;
 		}
 
@@ -158,7 +157,7 @@ export class Game {
 		}
 
 		const numExamples = state.length;
-		const buffer = tf.buffer([numExamples, this.height, this.width]);
+		const buffer = tf.buffer([numExamples, this.height*this.width]);
 
 		for (let n = 0; n < numExamples; ++n) {
 		    if (state[n] == null) {
@@ -166,9 +165,7 @@ export class Game {
 		    }
 
 		    state[n].forEach((v, i) => {
-				let coord = this.popUp(i);
-				//console.log(v, coord[1]/32, coord[0]/32);
-				buffer.set(v, n, coord[1]/32, coord[0]/32);
+				buffer.set(n, v, i);
 			});
 
 		}
