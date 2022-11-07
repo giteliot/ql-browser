@@ -16,10 +16,10 @@ let score = 0;
 const trainConfig = {
     batchSize: 64, 
     gamma: 0.99,
-    learningRate: 1e-2,
+    learningRate: 1e-3,
     cumulativeRewardThreshold: 30, 
-    maxNumFrames: 2e4,
-    syncEveryFrames: 1000, 
+    maxNumFrames: 2.5e4,
+    syncEveryFrames: 1e4, 
     savePath: 'localstorage://qliaModel', 
     logDir: null
   };
@@ -61,7 +61,7 @@ async function initBotGame() {
 	if (!agent) {
 		console.log("agent not defined, creating a new one");
 		try {
-			const qNet = await tf.loadLayersModel(trainConfig.savePath);
+			// const qNet = await tf.loadLayersModel(trainConfig.savePath);
 			agent = new Agent(game, qNet);
 		} catch (err) {
 			agent = new Agent(game);
@@ -69,6 +69,7 @@ async function initBotGame() {
 	}
 
 	agent.game = game;
+	agent.actions = [];
 
 	console.log("model created");
 
@@ -88,8 +89,10 @@ async function initBotGame() {
 async function initTrain() {
 	if (!game)
 		game = new Game();
-	if (!agent)
+	if (!agent) {
 		agent = new Agent(game);
+		console.log("created new MODEL");
+	}
 
 	await agent.train(trainConfig);
 	await agent.saveModel(trainConfig.savePath);

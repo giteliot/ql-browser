@@ -156,21 +156,7 @@ export class Game {
 			state = [state]
 		}
 
-		const numExamples = state.length;
-		const buffer = tf.buffer([numExamples, this.height*this.width]);
-
-		for (let n = 0; n < numExamples; ++n) {
-		    if (state[n] == null) {
-		      continue;
-		    }
-
-		    state[n].forEach((v, i) => {
-				buffer.set(n, v, i);
-			});
-
-		}
-		
-		return buffer.toTensor();
+		return tf.tensor(state);
 	}
 
 	getActionFromInt(intAction) {

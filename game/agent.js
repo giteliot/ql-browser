@@ -7,11 +7,11 @@ import {copyWeights} from './dqn.js';
 const NUM_ACTIONS = 4;
 
 const config = {
-    replayBufferSize: 1e2,
-    epsilonInit: 0.4,
-    epsilonFinal: 0.01,
-    epsilonDecayFrames: 1e2,
-    learningRate: 1e-2
+    replayBufferSize: 1e4,
+    epsilonInit: 0.5,
+    epsilonFinal: 0.05,
+    epsilonDecayFrames: 5e4,
+    learningRate: 1e-3
   };
 
 class MovingAverager {
@@ -47,6 +47,7 @@ export class Agent {
 
 
     if (qNet) {
+      console.log("started from qnet")
       this.onlineNetwork = qNet;
       this.targetNetwork = qNet;
       this.frameCount = this.epsilonDecayFrames;
@@ -66,6 +67,7 @@ export class Agent {
     this.replayBufferSize = config.replayBufferSize;
     this.replayMemory = new ReplayMemory(config.replayBufferSize);
     this.reset();
+    this.actions = [];
   }
 
   reset() {
@@ -87,29 +89,27 @@ export class Agent {
     // The epsilon-greedy algorithm.
     let action;
     const state = this.game.getState().slice();
+    // this.print(this.game.getState())
 
     if (Math.random() < this.epsilon) {
       // Pick an action at random.
       action = this.game.getRandomAction();
-      //console.log("action from epsilon = "+action);
-      console.log("random -> "+action);
+      // console.log("action from epsilon = "+action);
     } else {
       // Greedily pick an action based on online DQN output.
       tf.tidy(() => {
         const stateTensor = this.game.getStateTensor(this.game.getState());
-        console.log("state tensor -> ")
-        this.print(stateTensor.dataSync());
         action = this.onlineNetwork.predict(stateTensor).argMax(-1).dataSync()[0]
-        //console.log("action from model = "+action);
-        console.log("random -> "+action);
+        // console.log("action from model = "+action);
+        this.actions.push(action);
       });
     }
     
     const stepResult = this.game.step(action);
-    console.log("result")
-    console.log(stepResult);
+    // this.print(this.game.getState())
+
     this.replayMemory.append([state, action, stepResult.reward, stepResult.gameOver, stepResult.nextState]);
-    this.print(stepResult.nextState)
+
     const output = {
       action: action,
       cumulativeReward: this.game.score,
@@ -118,6 +118,8 @@ export class Agent {
     if (output.gameOver) {
       console.log("game over with "+this.game.score)
       this.reset();
+      console.log(this.actions.join(","))
+      this.actions = [];
     }
     return output;
   }

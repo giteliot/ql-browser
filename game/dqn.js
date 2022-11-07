@@ -33,13 +33,13 @@ export function createDeepQNetwork(h, w, numActions) {
   const model = tf.sequential();
   const init = tf.initializers.heUniform();
   model.add(tf.layers.dense(
-    {units: 24,
+    {units: 100,
      inputShape:[h*w],
      activation:'relu',
      kernelInitializer:init}
   ));
   model.add(tf.layers.dense(
-      {units: 12,
+      {units: 50,
        activation:'relu',
        kernelInitializer:init
      }
@@ -53,14 +53,13 @@ export function createDeepQNetwork(h, w, numActions) {
 
   //model.compile({optimizer: 'sgd', loss: tf.losses.huber});
 
-/*
 
-  model.add(tf.layers.conv2d({
+  /*model.add(tf.layers.conv2d({
     filters: 128,
     kernelSize: 3,
     strides: 1,
     activation: 'relu',
-    inputShape: [h, w, 1]
+    inputShape: [h*w]
   }));
   model.add(tf.layers.batchNormalization());
   model.add(tf.layers.conv2d({
