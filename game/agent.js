@@ -9,9 +9,19 @@ const NUM_ACTIONS = 4;
 const config = {
     replayBufferSize: 1e4,
     epsilonInit: 0.5,
-    epsilonFinal: 0.05,
-    epsilonDecayFrames: 5e4,
-    learningRate: 1e-3
+    epsilonFinal: 0,
+    epsilonDecayFrames: 3e4
+  };
+
+const trainConfig = {
+    batchSize: 64, 
+    gamma: 0.99,
+    learningRate: 1e-3,
+    cumulativeRewardThreshold: 210, 
+    maxNumFrames: 5e4,
+    syncEveryFrames: 2e3, 
+    savePath: 'localstorage://qliaModel', 
+    logDir: null
   };
 
 class MovingAverager {
@@ -30,6 +40,10 @@ class MovingAverager {
   average() {
     return this.buffer.reduce((x, prev) => x + prev) / this.buffer.length;
   }
+}
+
+export async function loadModel() {
+  return await tf.loadLayersModel(trainConfig.savePath);
 }
 
 export class Agent {
@@ -52,7 +66,7 @@ export class Agent {
       this.targetNetwork = qNet;
       this.frameCount = this.epsilonDecayFrames;
     } else {
-      this.onlineNetwork =
+      this.onlineNetwork = 
         createDeepQNetwork(game.height,  game.width, NUM_ACTIONS);
       this.targetNetwork =
         createDeepQNetwork(game.height,  game.width, NUM_ACTIONS);
@@ -62,7 +76,7 @@ export class Agent {
     // the online network.
     this.targetNetwork.trainable = false;
 
-    this.optimizer = tf.train.adam(config.learningRate);
+    this.optimizer = tf.train.adam(trainConfig.learningRate);
 
     this.replayBufferSize = config.replayBufferSize;
     this.replayMemory = new ReplayMemory(config.replayBufferSize);
@@ -101,7 +115,7 @@ export class Agent {
         const stateTensor = this.game.getStateTensor(this.game.getState());
         action = this.onlineNetwork.predict(stateTensor).argMax(-1).dataSync()[0]
         // console.log("action from model = "+action);
-        this.actions.push(action);
+        // this.actions.push(action);
       });
     }
     
@@ -116,9 +130,9 @@ export class Agent {
       gameOver: stepResult.gameOver
     };
     if (output.gameOver) {
-      console.log("game over with "+this.game.score)
+      console.log("game over with "+this.game.score+"\n tensors = "+tf.memory().numTensors)
       this.reset();
-      console.log(this.actions.join(","))
+      // console.log(this.actions.join(","))
       this.actions = [];
     }
     return output;
@@ -179,7 +193,7 @@ export class Agent {
     
   }
 
-  train(config) {
+  train() {
     let summaryWriter;
     console.log("> filling memory");
     // put it back to i < this.replayBufferSize
@@ -190,7 +204,7 @@ export class Agent {
     console.log("> memory filled");
     const rewardAverager100 = new MovingAverager(100);
 
-    const optimizer = tf.train.adam(config.learningRate);
+    const optimizer = tf.train.adam(trainConfig.learningRate);
 
     let tPrev = new Date().getTime();
     let frameCountPrev = this.frameCount;
@@ -198,8 +212,7 @@ export class Agent {
     
     console.log("> starting training");
     while (true) {
-      this.trainOnReplayBatch(config.batchSize, config.gamma, optimizer);
-      
+      this.trainOnReplayBatch(trainConfig.batchSize, trainConfig.gamma, optimizer);
       const {action, cumulativeReward, gameOver} = this.playStep();
 
       if (gameOver) {
@@ -228,14 +241,15 @@ export class Agent {
               'framesPerSecond', framesPerSecond, this.frameCount);
         }
 
-        if (averageReward100 >= config.cumulativeRewardThreshold ||
-            this.frameCount >= config.maxNumFrames) {
+        if (averageReward100 >= trainConfig.cumulativeRewardThreshold ||
+          this.frameCount >= trainConfig.maxNumFrames) {
           console.log("finished training!!");
           copyWeights(this.targetNetwork, this.onlineNetwork);
+          this.targetNetwork.save(trainConfig.savePath);
           break;
         }
       }
-      if (this.frameCount % config.syncEveryFrames === 0) {
+      if (this.frameCount % trainConfig.syncEveryFrames === 0) {
         copyWeights(this.targetNetwork, this.onlineNetwork);
         console.log('Sync\'ed weights from online network to target network');
       }

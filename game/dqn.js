@@ -33,13 +33,19 @@ export function createDeepQNetwork(h, w, numActions) {
   const model = tf.sequential();
   const init = tf.initializers.heUniform();
   model.add(tf.layers.dense(
-    {units: 100,
+    {units: 128,
      inputShape:[h*w],
      activation:'relu',
      kernelInitializer:init}
   ));
   model.add(tf.layers.dense(
-      {units: 50,
+      {units: 256,
+       activation:'relu',
+       kernelInitializer:init
+     }
+  ));
+  model.add(tf.layers.dense(
+      {units: 128,
        activation:'relu',
        kernelInitializer:init
      }

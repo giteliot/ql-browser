@@ -20,9 +20,9 @@ const ACTION = {
 
 export class Game {
 	constructor() {
-		this.gridRatio = 32;
-		this.width = 15;
-		this.height = 10;
+		this.gridRatio = 120;
+		this.width = 4;
+		this.height = 3;
 		this.visibility = 1;
 		this.startingFood = 5;
 		this.eaterColor = "#000000";
@@ -78,7 +78,7 @@ export class Game {
 		this.score = 0;
 		this.state = Array(this.height*this.width).fill(0);
 
-		this.eater = [0,9]
+		this.eater = [0,this.height-1]
 
 		this.state[this.flatten(this.eater)] = 7;
 
@@ -126,15 +126,20 @@ export class Game {
 		const newPosition = this.flatten(this.eater);
 		const objectInNewPosition = this.state[newPosition];
 
-		let reward = -1;
+		let reward = -5;
 		let gameOver = false;
 
 		if (objectInNewPosition == 0) {
 			this.state[newPosition] = 7;
 		} else if (objectInNewPosition == 1) {
 			this.state[newPosition] = -3;
+			reward = 10;
 			this.addFood();
-			reward = 20;
+			if (this.isWinningCondition(this.state)) {
+				gameOver = true;
+				reward += 100;
+			}
+			
 		} else if (objectInNewPosition == -1) {
 			gameOver = true;
 		}
@@ -144,6 +149,14 @@ export class Game {
 				nextState: this.state, 
 				gameOver: gameOver}
 
+	}
+
+	isWinningCondition(state) {
+		const over = [1, 0, 7];
+		for (var val of state) {
+			if (over.includes(val)) return false;
+		}
+		return true;
 	}
 
 

@@ -1,5 +1,5 @@
 import {Game} from './game.js'
-import {Agent} from './agent.js'
+import {Agent, loadModel} from './agent.js'
 import {sleep} from './utils.js'
 
 const canvas = document.getElementById('main-canvas')
@@ -13,22 +13,13 @@ let game = undefined;
 let agent = undefined;
 let score = 0;
 
-const trainConfig = {
-    batchSize: 64, 
-    gamma: 0.99,
-    learningRate: 1e-3,
-    cumulativeRewardThreshold: 30, 
-    maxNumFrames: 2.5e4,
-    syncEveryFrames: 1e4, 
-    savePath: 'localstorage://qliaModel', 
-    logDir: null
-  };
-
-function initSoloGame() {
+ function initSoloGame() {
 	game = new Game();
 	game.reset();
 	score = 0;
 	playEnabled = true;
+
+	scoreText.innerText = score;
 	
 	renderGame(game, canvas);
 
@@ -61,7 +52,8 @@ async function initBotGame() {
 	if (!agent) {
 		console.log("agent not defined, creating a new one");
 		try {
-			// const qNet = await tf.loadLayersModel(trainConfig.savePath);
+			const qNet = await loadModel();
+			if (qNet) console.log("LOADED QNET FROM STORAGE");
 			agent = new Agent(game, qNet);
 		} catch (err) {
 			agent = new Agent(game);
@@ -82,7 +74,7 @@ async function initBotGame() {
 		console.log("stepping "+k);
 		stepResult = await agent.playStep();
 		scoreAndRender(stepResult);
-		await sleep(300);
+		await sleep(600);
 	}
 }
 
@@ -94,11 +86,11 @@ async function initTrain() {
 		console.log("created new MODEL");
 	}
 
-	await agent.train(trainConfig);
-	await agent.saveModel(trainConfig.savePath);
+	await agent.train();
 }
 
 function renderGame(game, canvas) {
+	console.log(game.getState())
 	const ctx = canvas.getContext("2d");
 
 	for (let [index, value] of game.getState().entries()) { 
@@ -121,35 +113,39 @@ function destroyGame() {
 }
 
 function scoreAndRender(result) {
-	if (result.gameOver) {
-		destroyGame();
-		return;
-	}
 	if (result.reward)
 		score += result.reward;
 	if (result.cumulativeReward)
 		score = result.cumulativeReward;
 	scoreText.innerText = score;
 
-	// console.log(result);
 	renderGame(game, canvas);
+
+	if (result.gameOver) {
+		scoreText.innerText = "GAME OVER! FINAL SCORE: "+score;
+		console.log("game over! ")
+		playEnabled = false;
+		return;
+	}
+
+	// console.log(result);
 }
 
 document.onkeydown = function(e) {
-	if (game == undefined)
+	if (game == undefined || !playEnabled)
 		return;
     switch (e.keyCode) {
         case 37:
-            scoreAndRender(game.step("LEFT"));
+            scoreAndRender(game.step(2));
             break;
         case 38:
-            scoreAndRender(game.step("UP"));
+            scoreAndRender(game.step(0));
             break;
         case 39:
-            scoreAndRender(game.step("RIGHT"));
+            scoreAndRender(game.step(3));
             break;
         case 40:
-            scoreAndRender(game.step("DOWN"));
+            scoreAndRender(game.step(1));
             break;
     }
 };
