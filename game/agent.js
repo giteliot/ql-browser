@@ -10,16 +10,16 @@ const config = {
     replayBufferSize: 1e4,
     epsilonInit: 0.5,
     epsilonFinal: 0,
-    epsilonDecayFrames: 3e4
+    epsilonDecayFrames: 8e4
   };
 
 const trainConfig = {
     batchSize: 64, 
     gamma: 0.99,
-    learningRate: 1e-3,
-    cumulativeRewardThreshold: 210, 
-    maxNumFrames: 5e4,
-    syncEveryFrames: 2e3, 
+    learningRate: 1e-4,
+    cumulativeRewardThreshold: 200, 
+    maxNumFrames: 10e4,
+    syncEveryFrames: 1e4, 
     savePath: 'localstorage://qliaModel', 
     logDir: null
   };
@@ -92,7 +92,7 @@ export class Agent {
     this.onlineNetwork.save(path);
   }
 
-  playStep() {
+  playStep(isTraining) {
     //console.log(tf.memory ().numTensors)
     this.epsilon = this.frameCount >= this.epsilonDecayFrames ?
         this.epsilonFinal :
@@ -131,7 +131,7 @@ export class Agent {
     };
     if (output.gameOver) {
       console.log("game over with "+this.game.score+"\n tensors = "+tf.memory().numTensors)
-      this.reset();
+      if (isTraining) this.reset();
       // console.log(this.actions.join(","))
       this.actions = [];
     }
@@ -194,11 +194,13 @@ export class Agent {
   }
 
   train() {
+    const startTime = Date.now();
+
     let summaryWriter;
     console.log("> filling memory");
     // put it back to i < this.replayBufferSize
     for (let i = 0; i < this.replayBufferSize; ++i) {
-      this.playStep();
+      this.playStep(true);
     }
 
     console.log("> memory filled");
@@ -213,7 +215,7 @@ export class Agent {
     console.log("> starting training");
     while (true) {
       this.trainOnReplayBatch(trainConfig.batchSize, trainConfig.gamma, optimizer);
-      const {action, cumulativeReward, gameOver} = this.playStep();
+      const {action, cumulativeReward, gameOver} = this.playStep(true);
 
       if (gameOver) {
         
@@ -243,7 +245,7 @@ export class Agent {
 
         if (averageReward100 >= trainConfig.cumulativeRewardThreshold ||
           this.frameCount >= trainConfig.maxNumFrames) {
-          console.log("finished training!!");
+          console.log("finished training!! in "+Math.floor((Date.now() - startTime)/ 1000) + " seconds");
           copyWeights(this.targetNetwork, this.onlineNetwork);
           this.targetNetwork.save(trainConfig.savePath);
           break;

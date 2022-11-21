@@ -44,16 +44,15 @@ export function createDeepQNetwork(h, w, numActions) {
        kernelInitializer:init
      }
   ));
-  model.add(tf.layers.dense(
-      {units: 128,
-       activation:'relu',
-       kernelInitializer:init
-     }
-  ));
+  // model.add(tf.layers.dense(
+  //     {units: 128,
+  //      activation:'relu',
+  //      kernelInitializer:init
+  //    }
+  // ));
   model.add(tf.layers.dense(
     {units: numActions,
-       activation:'linear',
-       kernelInitializer:init
+       activation:'linear'
      }
     ));
 

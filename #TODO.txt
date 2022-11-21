@@ -1,6 +1,5 @@
 #TODO
 
 - tune hyperparameters of the network
-- save/load model features
 
 

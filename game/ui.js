@@ -35,6 +35,8 @@ async function initBotGame() {
 		game = new Game();
 		game.reset();
 		score = 0;
+	} else {
+		game.reset();
 	}
 	
 	playEnabled = false;
@@ -54,7 +56,7 @@ async function initBotGame() {
 		try {
 			const qNet = await loadModel();
 			if (qNet) console.log("LOADED QNET FROM STORAGE");
-			agent = new Agent(game, qNet);
+			agent = new Agent(game, qNet); //pass qNet to load from memory
 		} catch (err) {
 			agent = new Agent(game);
 		}
