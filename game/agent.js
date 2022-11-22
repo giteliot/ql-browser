@@ -13,7 +13,7 @@ const config = {
     epsilonDecayFrames: 8e4
   };
 
-const trainConfig = {
+export const trainConfig = {
     batchSize: 64, 
     gamma: 0.99,
     learningRate: 1e-4,
@@ -213,7 +213,10 @@ export class Agent {
     let averageReward100Best = -Infinity;
     
     console.log("> starting training");
-    while (true) {
+
+    const loop = setInterval(f, 1);
+
+    const f = () => {
       this.trainOnReplayBatch(trainConfig.batchSize, trainConfig.gamma, optimizer);
       const {action, cumulativeReward, gameOver} = this.playStep(true);
 
@@ -248,14 +251,13 @@ export class Agent {
           console.log("finished training!! in "+Math.floor((Date.now() - startTime)/ 1000) + " seconds");
           copyWeights(this.targetNetwork, this.onlineNetwork);
           this.targetNetwork.save(trainConfig.savePath);
-          break;
+          clearInterval(loop);
         }
       }
       if (this.frameCount % trainConfig.syncEveryFrames === 0) {
         copyWeights(this.targetNetwork, this.onlineNetwork);
         console.log('Sync\'ed weights from online network to target network');
       }
-
     }
   }
 }

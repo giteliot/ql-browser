@@ -1,5 +1,5 @@
 import {Game} from './game.js'
-import {Agent, loadModel} from './agent.js'
+import {Agent, loadModel, trainConfig} from './agent.js'
 import {sleep} from './utils.js'
 
 const canvas = document.getElementById('main-canvas')
@@ -51,16 +51,16 @@ async function initBotGame() {
 
 	// const qNet = await tf.loadLayersModel('./models/dqn/model.json');
 
-	if (!agent) {
-		console.log("agent not defined, creating a new one");
-		try {
-			const qNet = await loadModel();
-			if (qNet) console.log("LOADED QNET FROM STORAGE");
-			agent = new Agent(game, qNet); //pass qNet to load from memory
-		} catch (err) {
+	console.log("agent not defined, creating a new one");
+	try {
+		const qNet = await loadModel();
+		if (qNet) console.log("LOADED QNET FROM STORAGE");
+		agent = new Agent(game, qNet); //pass qNet to load from memory
+	} catch (err) {
+		if (!agent)
 			agent = new Agent(game);
-		}
 	}
+	
 
 	agent.game = game;
 	agent.actions = [];
@@ -81,6 +81,8 @@ async function initBotGame() {
 }
 
 async function initTrain() {
+	scoreText.innerText = "TRAINING IN PROGRESS: LOADING MEMORY";
+
 	if (!game)
 		game = new Game();
 	if (!agent) {
@@ -88,7 +90,20 @@ async function initTrain() {
 		console.log("created new MODEL");
 	}
 
-	await agent.train();
+	const maxFrames = trainConfig.maxNumFrames - agent.replayBufferSize;
+	let progressLoop = setInterval(() => {
+
+		scoreText.innerText = "TRAINING IN PROGRESS: "+((agent.frameCount-agent.replayBufferSize)*100.0/maxFrames).toFixed(2)+"%";
+		if (maxFrames <= agent.frameCount) {
+			scoreText.innerText = "TRAINING COMPLETED!"
+			clearInterval(progressLoop);
+		}
+	},
+		1000);
+
+	
+	setTimeout(() => {agent.train(scoreText)}, 10);
+	
 }
 
 function renderGame(game, canvas) {

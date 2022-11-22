@@ -17,6 +17,13 @@
   <canvas id="main-canvas" class="map" width="480px" height="360px"></canvas>
 </div>
 
+<div class="info-container">
+<h3>HOT TO</h3>
+<p>SOLO GAME: you are the black square; use key arrows to move and eat the green squares (+10); if you hit a red square you die; if you move to a white square you lose 10 points; finishing all the squares grants a win (+100); best score possible is 220;</p>
+<p>TRAIN BOT: agent plays for 100000 steps by itself; result is stored in memory and in local storage under 'localstorage://qliaModel'; it should require around 15-20mins depending on the browser and hardware; should lead to perfect play;</p>
+<p>START BOT: tries to get the agent from the local storage; if this is not found, tries to take it from memory; if not found, a new agent is created; one game is then played and displayed;</p>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js"></script>
 <script type="module" src="./ui.js"></script>
 </body>
