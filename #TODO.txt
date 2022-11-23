@@ -1,5 +1,0 @@
-#TODO
-
-- tune hyperparameters of the network
-
-
