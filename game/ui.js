@@ -57,6 +57,8 @@ async function initBotGame() {
 		if (qNet) console.log("LOADED QNET FROM STORAGE");
 		agent = new Agent(game, qNet); //pass qNet to load from memory
 	} catch (err) {
+		console.log("EEERR")
+		console.log(err)
 		if (!agent)
 			agent = new Agent(game);
 	}
@@ -89,20 +91,22 @@ async function initTrain() {
 		agent = new Agent(game);
 		console.log("created new MODEL");
 	}
-
+	let trainLoop = undefined;
 	const maxFrames = trainConfig.maxNumFrames - agent.replayBufferSize;
 	let progressLoop = setInterval(() => {
 
 		scoreText.innerText = "TRAINING IN PROGRESS: "+((agent.frameCount-agent.replayBufferSize)*100.0/maxFrames).toFixed(2)+"%";
 		if (maxFrames <= agent.frameCount) {
 			scoreText.innerText = "TRAINING COMPLETED!"
+			agent.saveModel();
 			clearInterval(progressLoop);
+			clearInterval(trainLoop);
 		}
 	},
 		1000);
 
 	
-	setTimeout(() => {agent.train(scoreText)}, 10);
+	setTimeout(() => {trainLoop = agent.train(scoreText)}, 10);
 	
 }
 

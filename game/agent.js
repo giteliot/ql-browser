@@ -18,7 +18,7 @@ export const trainConfig = {
     gamma: 0.99,
     learningRate: 1e-4,
     cumulativeRewardThreshold: 200, 
-    maxNumFrames: 10e4,
+    maxNumFrames: 1e5,
     syncEveryFrames: 1e4, 
     savePath: 'localstorage://qliaModel', 
     logDir: null
@@ -88,8 +88,8 @@ export class Agent {
     this.game.reset();
   }
 
-  saveModel(path) {
-    this.onlineNetwork.save(path);
+  saveModel() {
+    this.targetNetwork.save(trainConfig.savePath);
   }
 
   playStep(isTraining) {
@@ -211,10 +211,6 @@ export class Agent {
     let tPrev = new Date().getTime();
     let frameCountPrev = this.frameCount;
     let averageReward100Best = -Infinity;
-    
-    console.log("> starting training");
-
-    const loop = setInterval(f, 1);
 
     const f = () => {
       this.trainOnReplayBatch(trainConfig.batchSize, trainConfig.gamma, optimizer);
@@ -259,5 +255,9 @@ export class Agent {
         console.log('Sync\'ed weights from online network to target network');
       }
     }
+
+    console.log("> starting training");
+
+    return setInterval(f, 1);
   }
 }
